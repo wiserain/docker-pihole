@@ -1,0 +1,39 @@
+name: docker-buildx
+
+on:
+  watch:
+    types: [started]
+
+env:
+  DOCKERHUB_USER: wiserain
+  DOCKERHUB_REPO: routedns
+
+jobs:
+  docker-buildx:
+    runs-on: ubuntu-latest
+    if: github.actor == github.event.repository.owner.login
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      - 
+        name: Run Buildx
+        uses: ilteoood/docker_buildx@master
+        with:
+          imageName: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPO }}
+          tag: latest
+          dockerFile: Dockerfile
+          publish: true
+          platform: linux/amd64,linux/arm/v7,linux/arm64
+          dockerHubUser: ${{ env.DOCKERHUB_USER }}
+          dockerHubPassword: ${{ secrets.DOCKERHUB_PASS }}
+      -
+        name: Send Notification
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          description: |
+            Image: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPO }}
+            Tags: latest
