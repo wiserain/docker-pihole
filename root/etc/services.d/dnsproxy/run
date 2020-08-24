@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+
+dnsproxy_app_bin=$(printenv DNSPROXY_APP_BIN | tr -d '"' | tr -d "'")
+dnsproxy_app_arg=$(printenv DNSPROXY_APP_ARG | tr -d '"' | tr -d "'")
+
+cmd="${dnsproxy_app_bin} ${dnsproxy_app_arg}"
+echo "executing => $cmd" 
+exec $cmd

@@ -1,12 +1,25 @@
-ARG ALPINE_VER=3.12
-ARG GOLANG_VER=1.14
-FROM golang:${GOLANG_VER}-alpine${ALPINE_VER} AS builder
+ARG GOLANG_VER=1.15
+ARG PIHOLE_VER=latest
+FROM golang:${GOLANG_VER} AS builder
 
-RUN apk add --no-cache curl bind-tools git
+# AdguardTeam/dnsproxy
+RUN go get -u github.com/AdguardTeam/dnsproxy
+
+# folbricht/routedns
 RUN go get -u github.com/folbricht/routedns/cmd/routedns
 
-FROM alpine:${ALPINE_VER}
+# cloudflare/cloudflared
+RUN go get -u github.com/cloudflare/cloudflared/cmd/cloudflared
 
+# DNSCrypt/dnscrypt-proxy
+RUN go get -u github.com/DNSCrypt/dnscrypt-proxy/dnscrypt-proxy
+
+# shawn1m/overture
+RUN go get -u github.com/shawn1m/overture/main && \
+    mv /go/bin/main /go/bin/overture
+
+FROM pihole/pihole:${PIHOLE_VER}
+
+ENV DNSPROXY_APP_BIN "routedns"
 COPY --from=builder /go/bin/ /usr/bin/
-
-ENTRYPOINT ["/usr/bin/routedns"]
+COPY root/ /

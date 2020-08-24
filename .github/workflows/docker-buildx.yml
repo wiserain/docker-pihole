@@ -6,13 +6,18 @@ on:
 
 env:
   DOCKERHUB_USER: wiserain
-  DOCKERHUB_REPO: routedns
+  DOCKERHUB_REPO: pihole
 
 jobs:
   docker-buildx:
     runs-on: ubuntu-latest
     if: github.actor == github.event.repository.owner.login
     steps:
+      - 
+        name: Load Variables
+        id: vars
+        run: |
+          echo ::set-output name=pihole_ver::$(curl --silent "https://api.github.com/repos/pi-hole/docker-pi-hole/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
       -
         name: Checkout
         uses: actions/checkout@v2
@@ -21,8 +26,9 @@ jobs:
         uses: ilteoood/docker_buildx@master
         with:
           imageName: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPO }}
-          tag: latest
+          tag: latest,${{ steps.vars.outputs.pihole_ver }}
           dockerFile: Dockerfile
+          buildArg: GOLANG_VER=1.15,PIHOLE_VER=${{ steps.vars.outputs.pihole_ver }}
           publish: true
           platform: linux/amd64,linux/arm/v7,linux/arm64
           dockerHubUser: ${{ env.DOCKERHUB_USER }}
@@ -36,4 +42,4 @@ jobs:
           status: ${{ job.status }}
           description: |
             Image: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPO }}
-            Tags: latest
+            Tags: latest,${{ steps.vars.outputs.pihole_ver }}

@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+
+# make folders
+mkdir -p \
+        /config
+
+# permissions
+if [[ ! -z ${PUID} && ! -z ${PGID} ]]; then
+    chown -R ${PUID}:${PGID} \
+        /config
+fi
